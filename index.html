@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard รายงานปัญหาการขอปกปิดวิทยานิพนธ์ 2565–ปัจจุบัน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#eef1f6; --card:#ffffff; --ink:#1d2433; --muted:#6b7280;
+  --pink:#d4248e; --pink2:#f06ab4; --gold:#c9a14a; --navy:#2a3a5e;
+  --good:#1f9d6b; --warn:#e0a800; --bad:#d64545;
+  --line:#e2e6ee; --shadow:0 2px 14px rgba(30,40,70,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 20px 60px}
+header.hero{background:linear-gradient(120deg,#2a3a5e 0%,#3a2150 55%,#7a1452 100%);color:#fff;border-radius:18px;padding:26px 30px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+header.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:230px;height:230px;background:radial-gradient(circle,rgba(212,36,142,.45),transparent 70%)}
+.hero h1{font-size:25px;font-weight:700}
+.hero .sub{opacity:.85;margin-top:6px;font-size:14.5px;font-weight:300}
+.hero .badge{display:inline-block;margin-top:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:5px 13px;border-radius:30px;font-size:12.5px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:20px 0 8px}
+.filters .lbl{font-size:13px;color:var(--muted);margin-right:4px;font-weight:500}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 15px;border-radius:30px;font-family:inherit;font-size:13.5px;cursor:pointer;transition:.15s;font-weight:500}
+.chip:hover{border-color:var(--pink)}
+.chip.active{background:var(--pink);color:#fff;border-color:var(--pink);box-shadow:0 3px 10px rgba(212,36,142,.3)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:14px 0 6px}
+.kpi{background:var(--card);border-radius:14px;padding:17px 18px;box-shadow:var(--shadow);border-left:4px solid var(--pink)}
+.kpi:nth-child(2){border-left-color:var(--navy)}
+.kpi:nth-child(3){border-left-color:var(--gold)}
+.kpi:nth-child(4){border-left-color:#3aa6a0}
+.kpi .v{font-size:30px;font-weight:700;line-height:1.1}
+.kpi .l{font-size:13px;color:var(--muted);margin-top:3px}
+.kpi .s{font-size:12px;color:var(--muted);margin-top:7px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:16px}
+.panel{background:var(--card);border-radius:14px;padding:18px 18px 14px;box-shadow:var(--shadow)}
+.panel h3{font-size:15.5px;font-weight:600;margin-bottom:3px}
+.panel .desc{font-size:12px;color:var(--muted);margin-bottom:12px}
+.col6{grid-column:span 6}.col4{grid-column:span 4}.col8{grid-column:span 8}.col12{grid-column:span 12}
+.cv{position:relative;height:260px}
+.cv.tall{height:300px}
+.insight{background:#fbf3f8;border:1px solid #f0d4e6;border-radius:12px;padding:14px 16px;margin-top:16px}
+.insight h4{font-size:14px;color:var(--pink);margin-bottom:6px;font-weight:600}
+.insight ul{margin-left:18px;font-size:13.5px;color:#3a3f4d}
+.insight li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:12.8px;margin-top:6px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f6f7fb;font-weight:600;color:#4a5163;position:sticky;top:0;cursor:pointer;white-space:nowrap}
+th:hover{color:var(--pink)}
+tr.main{cursor:pointer}
+tr.main:hover td{background:#fafbfe}
+tr.main.open td{background:#fdf2f9}
+.caret{display:inline-block;width:14px;color:var(--pink);transition:transform .18s;font-size:11px}
+tr.main.open .caret{transform:rotate(90deg)}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.t-perm{background:#fde7f2;color:#b01a73}
+.t-add{background:#e6ecfb;color:#2a3a5e}
+.t-red{background:#e8f7f1;color:#1f9d6b}
+.t-other{background:#f0eefb;color:#6c5ce7}
+.s-done{color:var(--good)}.s-wait{color:var(--warn)}.s-no{color:var(--bad)}
+.detail-row td{background:#f9fafd;padding:0;border-bottom:1px solid var(--line)}
+.detail-box{padding:14px 18px 16px 34px;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.detail-box .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 18px;margin-bottom:12px}
+.detail-box .f{font-size:12.8px}
+.detail-box .f .k{color:var(--muted);font-size:11.5px;margin-bottom:1px}
+.detail-box .f .vv{font-weight:500}
+.detail-box .full{font-size:13px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:4px}
+.detail-box .full .lab{font-size:11.5px;color:var(--pink);font-weight:600;margin-bottom:3px}
+.detail-box .full.st{margin-top:9px}
+.detail-box .full.st .lab{color:var(--navy)}
+.tablewrap{max-height:520px;overflow:auto;border-radius:10px;border:1px solid var(--line)}
+.tfchip{border:1px solid var(--line);background:#fff;color:var(--ink);padding:5px 13px;border-radius:30px;font-family:inherit;font-size:12.5px;cursor:pointer;transition:.15s;font-weight:500}
+.tfchip:hover{border-color:var(--pink)}
+.tfchip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tfrow{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:4px 0 2px}
+.tfrow .lbl{font-size:12.5px;color:var(--muted);font-weight:500;margin-right:2px}
+.tbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0}
+.tbar .mini{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);padding:5px 12px;border-radius:20px;cursor:pointer}
+.tbar .mini:hover{border-color:var(--pink);color:var(--pink)}
+.legend-note{font-size:11.5px;color:var(--muted);margin-top:10px}
+.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.col6,.col4,.col8{grid-column:span 12}.detail-box .dgrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>Dashboard รายงานปัญหาการขอปกปิดวิทยานิพนธ์</h1>
+  <div class="sub">คลังปัญญาจุฬาฯ (CUIR) · สำนักงานวิทยทรัพยากร — ปีการศึกษา 2565 ถึงปัจจุบัน (2569)</div>
+  <div class="badge">รวม 36 คำร้อง · 12 คณะ/สังกัด</div>
+</header>
+
+<div class="filters">
+  <span class="lbl">กรองตามปี (พ.ศ.):</span>
+  <button class="chip active" data-y="all">ทั้งหมด</button>
+  <button class="chip" data-y="2565">2565</button>
+  <button class="chip" data-y="2566">2566</button>
+  <button class="chip" data-y="2567">2567</button>
+  <button class="chip" data-y="2568">2568</button>
+  <button class="chip" data-y="2569">2569</button>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="v" id="k1">–</div><div class="l">คำร้องทั้งหมด</div><div class="s" id="k1s"></div></div>
+  <div class="kpi"><div class="v" id="k2">–</div><div class="l">ดำเนินการแล้วโดย CUIR</div><div class="s" id="k2s"></div></div>
+  <div class="kpi"><div class="v" id="k3">–</div><div class="l">รอ/ยังไม่ได้ดำเนินการ</div><div class="s" id="k3s"></div></div>
+  <div class="kpi"><div class="v" id="k4">–</div><div class="l">คณะ/สังกัดที่เกี่ยวข้อง</div><div class="s" id="k4s"></div></div>
+</div>
+
+<div class="grid">
+  <div class="panel col8">
+    <h3>แนวโน้มจำนวนคำร้องตามปี (พ.ศ.)</h3>
+    <div class="desc">เปรียบเทียบปริมาณคำร้องในแต่ละปี (2569 เป็นข้อมูลถึงปัจจุบัน)</div>
+    <div class="cv"><canvas id="cYear"></canvas></div>
+  </div>
+  <div class="panel col4">
+    <h3>ประเภทผลงาน</h3>
+    <div class="desc">สัดส่วนตามประเภทเอกสาร</div>
+    <div class="cv"><canvas id="cWork"></canvas></div>
+  </div>
+
+  <div class="panel col6">
+    <h3>ประเภทคำร้อง</h3>
+    <div class="desc">รูปแบบการร้องขอที่พบ</div>
+    <div class="cv"><canvas id="cType"></canvas></div>
+  </div>
+  <div class="panel col6">
+    <h3>เหตุผล/สาเหตุของการขอปกปิด</h3>
+    <div class="desc">จัดกลุ่มจากรายละเอียดคำร้อง</div>
+    <div class="cv"><canvas id="cReason"></canvas></div>
+  </div>
+
+  <div class="panel col6">
+    <h3>คณะ/สังกัดที่ยื่นคำร้อง</h3>
+    <div class="desc">เรียงจากมากไปน้อย</div>
+    <div class="cv tall"><canvas id="cFac"></canvas></div>
+  </div>
+  <div class="panel col6">
+    <h3>ระดับปริญญา</h3>
+    <div class="desc">สัดส่วนตามระดับการศึกษา</div>
+    <div class="cv"><canvas id="cDeg"></canvas></div>
+  </div>
+
+  <div class="panel col6">
+    <h3>ช่องทางการยื่นคำร้อง</h3>
+    <div class="desc">วิธีที่ใช้ติดต่อ CUIR</div>
+    <div class="cv"><canvas id="cChan"></canvas></div>
+  </div>
+  <div class="panel col6">
+    <h3>สถานะการดำเนินการของ CUIR</h3>
+    <div class="desc">ผลการดำเนินการต่อคำร้อง</div>
+    <div class="cv"><canvas id="cStat"></canvas></div>
+  </div>
+
+  <div class="panel col12">
+    <h3>ผู้ยื่นคำร้อง (ตามบทบาท)</h3>
+    <div class="desc">ใครเป็นผู้ริเริ่มคำร้องมากที่สุด</div>
+    <div class="cv"><canvas id="cReq"></canvas></div>
+  </div>
+</div>
+
+
+<div class="panel col12" style="margin-top:16px">
+  <h3>รายการคำร้องทั้งหมด</h3>
+  <div class="desc">คลิกที่แถวเพื่อกางดูรายละเอียดเต็ม · คลิกหัวคอลัมน์เพื่อจัดเรียง · ตารางปรับตามปีที่กรอง</div>
+  <div class="tfrow">
+    <span class="lbl">ประเภทคำร้อง:</span>
+    <button class="tfchip active" data-t="all">ทั้งหมด</button>
+    <button class="tfchip" data-t="ขอปกปิดถาวร">ขอปกปิดถาวร</button>
+    <button class="tfchip" data-t="ขอเพิ่มเวลาปกปิด">ขอเพิ่มเวลาปกปิด</button>
+    <button class="tfchip" data-t="ขอลดเวลาปกปิด">ขอลดเวลาปกปิด</button>
+    <button class="tfchip" data-t="ขอแก้ไขเนื้อหาไฟล์">ขอแก้ไขเนื้อหาไฟล์</button>
+    <button class="tfchip" data-t="ขอปรับรูปแบบการเผยแพร่">ขอปรับรูปแบบการเผยแพร่</button>
+    <button class="tfchip" data-t="ไม่ระบุ">ไม่ระบุ</button>
+  </div>
+  <div class="tbar">
+    <span style="font-size:12.5px;color:var(--muted)" id="tcount"></span>
+    <span><button class="mini" id="expAll">▸ กางทั้งหมด</button> <button class="mini" id="colAll">▾ ยุบทั้งหมด</button></span>
+  </div>
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead><tr>
+        <th style="width:26px"></th>
+        <th data-k="no">#</th><th data-k="date">วันที่</th><th data-k="owner">เจ้าของผลงาน</th>
+        <th data-k="faculty">คณะ/สังกัด</th><th data-k="degree">ระดับ</th>
+        <th data-k="reqtype">ประเภทคำร้อง</th><th data-k="reasoncat">เหตุผล</th>
+        <th data-k="channel">ช่องทาง</th><th data-k="statuscat">สถานะ</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <div class="legend-note">หมายเหตุ: การจัดกลุ่ม “เหตุผล” และ “สถานะ” สังเคราะห์จากคอลัมน์รายละเอียดและสถานะในข้อมูลต้นฉบับ เพื่อการนำเสนอเชิงภาพรวม</div>
+</div>
+
+<div class="footer">จัดทำจากไฟล์ “รายการปัญหาการขอปกปิดวิทยานิพนธ์ 2565–2566” · ครอบคลุมข้อมูลถึง พ.ค. 2569</div>
+</div>
+
+<script>
+const DATA = [{"no": 1, "date": "27 ก.ค. 2565", "year": 2565, "owner": "-", "work": "สารนิพนธ์", "degree": "ปริญญาโท", "faculty": "บัณฑิตวิทยาลัย", "field": "การจัดการโลจิสติกส์และโซ่อุปทาน", "channel": "บันทึกข้อความ", "reqtype": "ขอปรับรูปแบบการเผยแพร่", "newperiod": null, "requester": "ผู้อำนวยการหลักสูตรสหสาขาวิชาการจัดการโลจิสติกส์และโซ่อุปทาน", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ผู้อำนวยการ/ประธานหลักสูตร", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอเผยแพร่ผลงานวิชาการของนิสิตแผน ข เฉพาะบทคัดย่อ เนื่องจากในรายงานการค้นคว้าอิสระของนิสิต มีข้อมูลที่เป็นความลับทางธุรกิจขององค์กร จึงไม่สามารถเผยแพร่ผลงานทั้งหมดได้ โดยโครงงานพิเศษฉบับเต็มที่เป็นไฟล์ดิจิทัลจะถูกเก็บไว้ที่สำนักงานหลักสูตรฯ"}, {"no": 2, "date": "11 ส.ค. 2565", "year": 2565, "owner": "ฉัตรฤดี อัศวโกวิท", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "บัณฑิตวิทยาลัย", "field": "การจัดการโลจิสติกส์และโซ่อุปทาน", "channel": "อีเมล์", "reqtype": "ขอปกปิดถาวร", "newperiod": "-", "requester": "นิสิต", "receiver": "คลังปัญญาจุฬาฯ (CUIR)", "reqcat": "นิสิต", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "ระงับชั่วคราว/รอพิจารณา", "status": "ทาง CUIR ดำเนินการระงับการเผยแพร่ชั่วคราวไว้ให้ก่อน แต่ ณ ปัจจุบันยังไม่ได้มีเรื่องขอแก้ไขไฟล์ใหม่ อย่างเป็นทางการมาจากบัณฑิตวิทยาลัย จึงเปลี่ยนสถานะเป็น ปกปิดถาวร ไว้ก่อน", "detail": "นิสิตได้ใส่ชื่อวารสารที่ตีพิมพ์ไว้ในหน้าประวัติส่วนตัว แต่ภายหลังนิสิตถูกปฏิเสธการตอบรับการตีพิมพ์ นิสิตเกรงว่าจะเกิดปัญหาในอนาคต จึงเตรียมทำเรื่องขอแก้ไขข้อความในหน้าประวัติ กับทางบัณฑิตวิทยาลัย"}, {"no": 3, "date": "24 ก.ค. 2566", "year": 2566, "owner": "Hari Prabowo", "work": "วิทยานิพนธ์", "degree": "ไม่ระบุ", "faculty": "คณะเภสัชศาสตร์", "field": null, "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "31 ธ..ค. 2568", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ยังไม่ได้ดำเนินการ", "status": "CUIR ไม่ได้ดำเนินการ แต่ทางบัณฑิตวิทยาลัย อัพเดทวันที่ใหม่ใน iThesis ", "detail": "ขอแก้จาก อนุญาตให้เผยแพร่ได้ เป็น ไม่ควรอนุญาตให้เผยแพร่วิทยานิพนธ์ โดยสงวนสิทธิ์การเผยแพร่ตั้งแต่บัดนี้ไปจนถึง 31 ธ.ค. 2568 เนื่องจากรอตีพิมพ์ผลงานวิจัย"}, {"no": 4, "date": "24 ก.ค. 2566", "year": 2566, "owner": "Dimantha Sanjula Gunathilaka Herath Samarawichrama", "work": "วิทยานิพนธ์", "degree": "ไม่ระบุ", "faculty": "คณะเภสัชศาสตร์", "field": null, "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "31 ธ..ค. 2568", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ยังไม่ได้ดำเนินการ", "status": "CUIR ไม่ได้ดำเนินการ แต่ทางบัณฑิตวิทยาลัย อัพเดทวันที่ใหม่ใน iThesis", "detail": "ขอแก้จาก อนุญาตให้เผยแพร่ได้ เป็น ไม่ควรอนุญาตให้เผยแพร่วิทยานิพนธ์ โดยสงวนสิทธิ์การเผยแพร่ตั้งแต่บัดนี้ไปจนถึง 31 ธ.ค. 2568 เนื่องจากรอตีพิมพ์ผลงานวิจัย"}, {"no": 5, "date": "24 ก.ค. 2566", "year": 2566, "owner": "เขมพัชร หุ่นเจริญ", "work": "วิทยานิพนธ์", "degree": "ไม่ระบุ", "faculty": "คณะเภสัชศาสตร์", "field": null, "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "31 ธ..ค. 2568", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ยังไม่ได้ดำเนินการ", "status": "CUIR ไม่ได้ดำเนินการ แต่ทางบัณฑิตวิทยาลัย อัพเดทวันที่ใหม่ใน iThesis", "detail": "ขอแก้จาก อนุญาตให้เผยแพร่ได้ เป็น ไม่ควรอนุญาตให้เผยแพร่วิทยานิพนธ์ โดยสงวนสิทธิ์การเผยแพร่ตั้งแต่บัดนี้ไปจนถึง 31 ธ.ค. 2568 เนื่องจากรอตีพิมพ์ผลงานวิจัย"}, {"no": 6, "date": "25 ก.ค. 2566", "year": 2566, "owner": "สิรวิชญ์ แก้วผลึก", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "คณะวิทยาศาสตร์", "field": "ธรณีวิทยา", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "5 ปี (1 ส.ค. 2571)", "requester": "ประธานหลักสูตร", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ผู้อำนวยการ/ประธานหลักสูตร", "reasoncat": "การคัดลอก/ลอกเลียนผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "นิสิตได้จัดทำวิทยานิพนธ์ในรูปแบบที่รวมผลงานวิชาการจำนวน 3 เรื่อง เข้าด้วยกัน ซึ่งได้มีการเผยแพร่ไปแล้ว 2 เรื่อง และยังเหลืออีก 1 เรื่อง ที่กำลังอยู่ในขั้นตอนการแก้ไขจากสำนักพิมพ์ ซึ่งเกรงว่าจะเกิดการคัดลอกวรรณกับวิทยานิพนธ์"}, {"no": 7, "date": "4 ส.ค. 2566", "year": 2566, "owner": "ปานชนก ทองมโนกูร", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "วิทยาลัยวิทยาศาสตร์สาธารณสุข", "field": "สาธารณสุขศาสตร์", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "5 ปี", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ยังไม่ได้ดำเนินการ", "status": "CUIR ไม่ได้ดำเนินการ แต่ทางบัณฑิตวิทยาลัย อัพเดทวันที่ใหม่ใน iThesis", "detail": "เนื่องจากนิสิตอยู่ระหว่างการดำเนินการเพื่อตีพิมพ์บทความ จึงขอแก้ไขวันที่เผยแพร่ใหม่ เป็นวันที่ 31 ธ.ค. 2571 (5 ปี)"}, {"no": 8, "date": "2 พ.ย. 2566", "year": 2566, "owner": "พีรวัส ประชาศรี", "work": "สารนิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะรัฐศาสตร์", "field": "รัฐประศาสนศาสตร์", "channel": "บันทึกข้อความ", "reqtype": "ขอปกปิดถาวร", "newperiod": "-", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอปกปิดสารนิพนธ์ที่ได้เผยแพร่ในระบบคลังปัญญาจุฬาฯ เนื่องจากผู้บังคับบัญชาของนิสิตได้อ่านงานสารนิพนธ์แล้วมีความเห็นว่าเนื้อหาบางส่วนไม่สมควรเผยแพร่สู่สาธารณะ จึงขอปกปิดสารนิพนธ์ตลอดไป"}, {"no": 9, "date": "6 ธ.ค. 2566", "year": 2566, "owner": "คันธมาทน์ ธรรมชาติ", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะสหเวชศาสตร์", "field": "กายภาพบำบัด", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "7 ปี", "requester": "คณบดีคณะสหเวชศาสตร์", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ผู้บริหารคณะ", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "วิทยานิพนธ์อยู่ในช่วงของการรอตีพิมพ์ในวารสารระดับนานาชาติ จึงขอปกปิดเป็นเวลา 7 ปี"}, {"no": 10, "date": "7 ธ.ค. 2566", "year": 2566, "owner": "ธนัชชา โพชสาลี", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "บัณฑิตวิทยาลัย", "field": "จุลชีววิทยาทางการแพทย์", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "5 ปี", "requester": "นิสิต และอาจารย์ที่ปรึกษา / ผู้อำนวยการหลักสูตรสาขาวิชาจุลชีววิทยาทางการแพทย์", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "นิสิต + อาจารย์/หลักสูตร", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอแก้ไขระยะเวลาการปกปิดการเผยแพร่วิทยานิพนธ์ เนื่องจากความผิดพลาดในการลงข้อมูลในการเผยแพร่วิทยานิพนธ์บนเว็บไซต์จากวันที่ 3 ก.ค. 2571 เป็นันที่ 3 ก.ค. 2566 ทำให้มีการเผยแพร่ออกมา ซึ่งอาจมีผลต่อการตีพิมพ์ในอนาคต"}, {"no": 11, "date": "21 ธ.ค. 2566", "year": 2566, "owner": "แอน-ลอเร้น แฮมเมอร์", "work": "สารนิพนธ์", "degree": "ปริญญาโท", "faculty": "บัณฑิตวิทยาลัย", "field": "การจัดการทางวัฒนธรรม", "channel": "บันทึกข้อความ", "reqtype": "ขอปกปิดถาวร", "newperiod": "-", "requester": "ผู้อำนวยการหลักสูตรสหสาขาวิชาการจัดการทางวัฒนธรรม", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ผู้อำนวยการ/ประธานหลักสูตร", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอระงับการเผยแพร่ผลงานเอกัตศึกษาผ่านเว็บไซต์ / ผลงานนิสิตมีความเกี่ยวข้องกับประเด็นสำคัญทางด้านจริยธรรมซึ่งอาจส่งผลกระทบต่อนิสิต"}, {"no": 12, "date": "2 เม.ย. 2567", "year": 2567, "owner": "ดวงใจ ทศพร", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะวิทยาศาสตร์", "field": "ชีวเคมีและชีววิทยาโมเลกุล", "channel": "อีเมล์", "reqtype": "ไม่ระบุ", "newperiod": "10 ปี", "requester": "นิสิต", "receiver": null, "reqcat": "นิสิต", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ระงับการเผยแพร่ เนื่องจากทางนิสิต มีความประสงค์ขอขยายวันปกปิดเพิ่มขึ้นจากเดิม เนื่องจากยังตีพิมพ์บทความไม่เรียบร้อย วันที่พ้นปกปิด 31 ธ..ค. 2567"}, {"no": 13, "date": "4 เม.ย. 2567", "year": 2567, "owner": "อามีร์ อะมาน", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "บัณฑิตวิทยาลัย", "field": "ชีวสารสนเทศศาสตร์และชีววิทยาเชิงคอมพิวเตอร์", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "31 ม.ค. 2568", "requester": "นิสิต/อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "นิสิต + อาจารย์/หลักสูตร", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "มีความประสงค์ขอปกปิดวิทยานิพนธ์ที่เผยแพร่ในฐานข้อมูล CUIR จากวันที่ 10 เม.ย. 2567 เป็นวันที่ 31 ม.ค. 2568 เนื่องจากวิทยานิพนธ์อยู่ในระหว่างการส่งต้นฉบับเพื่อตีพิมพ์ในวารสารวิชาการ"}, {"no": 14, "date": "8 เม.ย. 2567", "year": 2567, "owner": "สุธาสินี สีฝั้น", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "คณะเภสัชศาสตร์", "field": "เภสัชศาสตร์และเทคโนโลยี", "channel": "อีเมล์", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "อาจารย์ที่ปรึกษา", "receiver": null, "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว / ทั้งนี้ได้ตรวจสอบกับใบนำส่ง นิสิตได้อนุญาตให้เผยแพร่ได้ แต่น่าจะมีข้อผิดพลาดบางประการเลยทำให้เผยแพร่ออกมา", "detail": "อาจารย์ที่ปรึกษาวิทยานิพนธ์แจ้งมาทาง email เมื่อวันที่ 7 เม.ย. 2567 พร้อมแนบหลักฐานมาว่า ขอปกปิดวิทยานิพนธ์ฉบับนี้แบบไม่มีกำหนด และไม่ทราบสาเหตุว่าเหตุใดวิทยานิพนธ์ถึงหลุดการปกปิดจากบัณฑิตวิทยาลัย จึงทำการ suppress ไว้ก่อน"}, {"no": 15, "date": "9 เม.ย. 2567", "year": 2567, "owner": "พรพัชร จิระเดชะ", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะวิศวกรรมศาสตร์", "field": "วิศวกรรมอุตสาหการ", "channel": "อีเมล์", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "อีเมล์จากสำนักเทคโนโลยีสารสนเทศ จุฬา", "receiver": null, "reqcat": "อื่น ๆ", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว / ทางบัณฑิตวิทยาลัยจะให้นิสิตทำเรื่องบันทึกข้อความถึงคณะกรรมการบัณฑิตวิทยาลัย เพื่อพิจารณาการระงับการเผยแพร่", "detail": "ทางสำนักบริหารเทคโนโลยีสารสนเทศ ได้ส่งอีเมล์แจ้งว่า ได้รับข้อร้องเรียนว่าวิทยานิพนธ์เล่มนี้นำเอาข้อมูลธุรกิจของบริษัทไปใช้โดยไม่ได้รับอนุญาต"}, {"no": 16, "date": "29 เม.ย. 2567", "year": 2567, "owner": "ณัฐธิดา หนูนาค", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "บัณฑิตวิทยาลัย", "field": "สริรวิทยา", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "3 ปี", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว / บัณฑิตปรับเปลี่ยนเป็นปกปิด 3 ปี โดยระบุเป็นวันที่ 30 เม.ย. 2570", "detail": "นิสิตได้นำเอางานวิจัยบางส่วนของวิทยานิพนธ์ ส่งตีพิมพ์เผยแพร่ผลงานวิชาการในระดับนานาชาติ เนื่องจากวารสารได้ตรวจพบเนื้อหางานวิจัยที่ส่งตีพิมพ์ซ้ำกับวิทยานิพนธ์ฉบับสมบูรณ์ จึงทำให้นิสิตไม่สามารถตีพิมพ์เผยแพร่ผลงานวิจัยได้"}, {"no": 17, "date": "8 ก.ค. 2567", "year": 2567, "owner": "อภิชัย กู้เมือง", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะนิติศาสตร์", "field": "นิติศาสตร์", "channel": "บันทึกข้อความ", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "ผู้รักษาการแทนรองอธิการบดี\n(ศ.ดร.คณพล จันทน์หอม)", "receiver": "ผู้อำนวยการสำนักงานวิทยทรัพยากร", "reqcat": "ผู้บริหารคณะ", "reasoncat": "การคัดลอก/ลอกเลียนผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "นิสิตได้คัดลอกผลงานทางวิชาการของบุคคลอื่นเพื่อนำมาใช้ในวิทยานิพนธ์ของตน มติสภามหาวิทยาลัยมีผลให้เป็นการเพิกถอนมติสภาจุฬาฯ ที่ได้อนุมัติปริญญานิติศาสตรมหาบัณฑิต"}, {"no": 18, "date": "1 ต.ค. 2567", "year": 2567, "owner": "จิราภา จูเจริญ, ธนชพร กิจบุญชู และ ศศิภัสสร สุขพุ่ม", "work": "โครงงานทางวิชาการ", "degree": "ปริญญาตรี", "faculty": "คณะเภสัชศาสตร์", "field": "การบริบาลทางเภสัชกรรม", "channel": "โทรศัพท์", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "อาจารย์ที่ปรึกษา", "receiver": null, "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ระงับการเผยแพร่ Senior Project"}, {"no": 19, "date": "7 ต.ค. 2567", "year": 2567, "owner": "Chizuru Koga", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "คณะวิทยาศาสตร์", "field": "เทคโนโลยีทางภาพ", "channel": "อีเมล์", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "อาจารย์ที่ปรึกษา", "receiver": null, "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอระงับการเผยแพร่"}, {"no": 20, "date": "25 ต.ค. 2567", "year": 2567, "owner": "ณัฏฐณิชา สุริยะมงคล", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะวิศวกรรมศาสตร์", "field": "วิทยาศาสตร์คอมพิวเตอร์", "channel": "โทรศัพท์", "reqtype": "ขอแก้ไขเนื้อหาไฟล์", "newperiod": null, "requester": "เจ้าหน้าที่คณะ", "receiver": null, "reqcat": "เจ้าหน้าที่คณะ", "reasoncat": "ข้อมูลส่วนบุคคล/ความเป็นส่วนตัว", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการแล้ว โดยการลบหน้าประวัติส่วนตัวออก และเผยแพร่ต่อไป", "detail": "วิทยานิพนธ์ ส่วนประวัติบุคคล มีข้อมูลส่วนบุคคลของตนเอง อยู่ เลย เลยขอให้ทาง CUIR ระงับการเผยแพร่"}, {"no": 21, "date": "4 พ.ย. 2567", "year": 2567, "owner": "กรณ์พงศ์ ใจงาม", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะรัฐศาสตร์", "field": "การปกครอง", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "6 ม.ค. 2598", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "เนื้อหาละเอียดอ่อน/เป็นความลับ", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอให้ปกปิดวิทยานิพนธ์เนื่องจากเป็นเรื่องละเอียดอ่อนภายในเนื้อหาของวิทยานิพนธ์ และล่อแหลมในสังคมไทย ซึ่งอาจเป็นอันตรายต่อบุคคลผู้ให้ข้อมูล"}, {"no": 22, "date": "26 มี.ค. 2568", "year": 2568, "owner": "สิรินทร์ อัครพันธุ์", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "บัณฑิตวิทยาลัย", "field": "ธุรกิจเทคโนโลยีและการจัดการนวัตกรรม", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "2 ปี", "requester": "ผู้อำนวยการหลักสูตรสหสาชาวิชา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ผู้อำนวยการ/ประธานหลักสูตร", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว / บัณฑิตปรับเปลี่ยนเป็นปกปิด 2 ปี โดยระบุเป็นวันที่ 18 ก.พ. 2570", "detail": "ขอไม่เปิดเผยวิทยานิพนธ์ใน CUIR เป็นระยะเวลา 2 ปี เนื่องจากจะนำผลงานวิทยานิพนธ์ไปใช้ประโยชน์ในเชิงวิชาการและการตีพิมพ์ในวารสารทางวิชาการเพิ่มเติม"}, {"no": 23, "date": "1 มิ.ย. 2568", "year": 2568, "owner": "เรวดี มีประสิทธิ์", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะวิทยาศาสตร์", "field": "วิทยาศาสตร์ทางทะเล", "channel": "บันทึกข้อความ", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "อาจารย์ที่ปรึกษา", "receiver": null, "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": null}, {"no": 24, "date": "19 มิ.ย. 2568", "year": 2568, "owner": "หทัยกนก กวีกิจสุภัค", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะศิลปกรรมศาสตร์", "field": "ทัศนศิลป์", "channel": "โทรศัพท์", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "เจ้าหน้าที่คณะ", "receiver": null, "reqcat": "เจ้าหน้าที่คณะ", "reasoncat": "การคัดลอก/ลอกเลียนผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "วิทยานิพนธ์ชื่อเรื่องนี้ ได้ไปลักลอกทางวรรรกรรมกับผลงานวิชาการอื่นๆ"}, {"no": 25, "date": "1 ก.ค. 2568", "year": 2568, "owner": "Anto Ranti", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะเภสัชศาสตร์", "field": "เภสัชวิทยาและพิษวิทยา", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "31 ธ..ค. 2578", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว / บัณฑิตไม่ให้ปกปิดโดยไม่มีกำหนด จึงปรับเปลี่ยนเป็นปกปิด 10 ปี จนถึงวันที่ 31 ธ.ค. 2578", "detail": "คณะกรรมการฯ พิจารณาไม่ควรให้เผยแพร่วิทยานิพนธ์ ปัจจุบันวิทยานิพนธ์มีการเผยแพร่สู่สาธารณะ จึงมีความประสงค์ขอให้สงวนสิทธิ์การเผยแพร่ตั้งแต่บัดนี้โดยไม่กำหนดเวลา เนื่องจากผลงานวิจัยบางส่วนยังอยู่ในระหว่างการดำเนินการเพื่อเผยแพร่บทความวิชาการ"}, {"no": 26, "date": "9 ก.ค. 2568", "year": 2568, "owner": "Ramzi Nasser Ahmed SAIF", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะวิทยาศาสตร์", "field": "เคมีเทคนิค", "channel": "บันทึกข้อความ", "reqtype": "ขอลดเวลาปกปิด", "newperiod": "เผยแพร่ได้เลย", "requester": "หัวหน้าภาควิชา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ภาควิชา", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "นิสิตได้รับการตีพิมพ์ลงในวารสารวิชาการเสร็จสิ้นโดยสมบูรณ์แล้ว จึงขอความอนุเคราะห์ให้ดำเนินการเปลี่ยนวันอนุญาตเผยแพร่วิทยานิพนธ์ในระบบ iThesis ให้เผยแพร่ได้ทันที มีผลตั้งแต่วันนี้เป็นต้นไป"}, {"no": 27, "date": "9 ก.ค. 2568", "year": 2568, "owner": "Zakarya Abdullah Mohammed HAZAEA", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะวิทยาศาสตร์", "field": "เคมีเทคนิค", "channel": "บันทึกข้อความ", "reqtype": "ขอลดเวลาปกปิด", "newperiod": "เผยแพร่ได้เลย", "requester": "หัวหน้าภาควิชา", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ภาควิชา", "reasoncat": "รอ/อยู่ระหว่างตีพิมพ์ผลงาน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "นิสิตได้รับการตีพิมพ์ลงในวารสารวิชาการเสร็จสิ้นโดยสมบูรณ์แล้ว จึงขอความอนุเคราะห์ให้ดำเนินการเปลี่ยนวันอนุญาตเผยแพร่วิทยานิพนธ์ในระบบ iThesis ให้เผยแพร่ได้ทันที มีผลตั้งแต่วันนี้เป็นต้นไป"}, {"no": 28, "date": "1 ต.ค. 2568", "year": 2568, "owner": "จา เซง บอก", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะรัฐศาสตร์", "field": "การพัฒนาระหว่างประเทศ", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "10 ปี", "requester": "รองคณบดี (รักษาการแทนคณบดี)", "receiver": "คณบดีบัณฑิตวิทยาลัย", "reqcat": "ผู้บริหารคณะ", "reasoncat": "เนื้อหาละเอียดอ่อน/เป็นความลับ", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว / บัณฑิตปรับเปลี่ยนเป็นปกปิด 10 ปี โดยระบุเป็นวันที่ 1 ต.ค. 2578", "detail": "ขอให้ปกปิดวิทยานิพนธ์เป็นความลับระยะเวลา 10 ปี เนื่องด้วยเหตุผด้านความปลอดภัยของนิสิต"}, {"no": 29, "date": "10 พ.ย. 2568", "year": 2568, "owner": "สุกฤตา นาคน้อย", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะครุศาสตร์", "field": "วิธีวิทยาการพัฒนานวัตกรรมทางการศึกษา", "channel": "แบบฟอร์มรับความคิดเห็นในระบบ", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": null, "receiver": null, "reqcat": "อื่น ๆ", "reasoncat": "สถานะการศึกษา (ยังไม่จบ/เข้าศึกษาใหม่)", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "นิสิตยังไม่ได้รับการอนุมัติให้จบการศึกษา ขอความอนุเคราะห์ระงับการเผยแพร่วิทยานิพนธ์จนกว่านิสิตจะได้รับการอนุมัติให้จบการศึกษา"}, {"no": 30, "date": "18 ก.พ. 2569", "year": 2569, "owner": "คุณภัทร พึ่งพระจิตร์", "work": "โครงงานทางวิชาการ", "degree": "ปริญญาตรี", "faculty": "คณะวิทยาศาสตร์", "field": "ชีววิทยา", "channel": "บันทึกข้อความ", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "นิสิต / อาจารย์ที่ปรึกษา", "receiver": "ผู้อำนวยการสำนักงานวิทยทรัพยากร", "reqcat": "นิสิต + อาจารย์/หลักสูตร", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "มีความประสงค์จะนำข้อมูลจากโครงการเรียนการสอนเพื่อเสริมประสบการณ์ ไปเผยแพร่ในการประชุมวิชาการ วิทยาศาสตร์วิจัย จึงใคร่ขออนุญาตปกปิดมิให้มีการเผยแพร่ไปเป็นสาธารณะ"}, {"no": 31, "date": "23 มี.ค. 2569", "year": 2569, "owner": "สืบบุญ ไชยสิทธิ์", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "วิทยาลัยสหศาสตร์บูรณาการ", "field": "เอเชียตะวันออกเฉียงใต้ศึกษา", "channel": "บันทึกข้อความ", "reqtype": "ขอลดเวลาปกปิด", "newperiod": "เผยแพร่ได้เลย", "requester": "อาจารย์ที่ปรึกษา", "receiver": "คณบดีวิทยาลัยสหศาสตร์บูรณาการ", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอความอนุเคราะห์วิทยาลัยสหศาสตร์บูรณาการ เผยแพร่วิทยานิพนธ์ให้กับนิสิตเพื่อใช้ในการศึกษาต่อในระดับอุดมศึกษา (ป.เอก) ต่อไป"}, {"no": 32, "date": "9 เม.ย. 2569", "year": 2569, "owner": "อาภาพรรณ ประกอบการ", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "คณะวิทยาศาสตร์", "field": "สัตววิทยา", "channel": "บันทึกข้อความ", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "ภาควิชาชีววิทยา", "receiver": null, "reqcat": "ภาควิชา", "reasoncat": "สถานะการศึกษา (ยังไม่จบ/เข้าศึกษาใหม่)", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ไม่สำเร็จการศึกษาในรหัสนิสิตเดิม และได้เข้าศึกษาใหม่ใน ป.เอก"}, {"no": 33, "date": "8 พ.ค. 2569", "year": 2569, "owner": "เทพบดี แลกันทะ", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "วิทยาลัยประชากรศาสตร์", "field": "ประชากรศาสตร์", "channel": "บันทึกข้อความ", "reqtype": "ขอแก้ไขเนื้อหาไฟล์", "newperiod": null, "requester": "คณบดีวิทยาลัยประชากรศาสตร์", "receiver": "ผู้อำนวยการสำนักงานวิทยทรัพยากร", "reqcat": "ผู้บริหารคณะ", "reasoncat": "แก้ไข/ปรับปรุงไฟล์หรือรูปแบบ", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว แนบไฟล์รายการอ้างอิงท้ายไฟล์วิทยานิพนธ์แล้ว", "detail": "ตามที่คณะกรรมการบริหารบัณฑิตวิทยาลัย ครั้งที่ 3/2569 มีมติไม่อนุมัติให้การเสนอขอแก้ไขรายการอ้างอิงวิทยานิพนธ์ ที่มีการลงนามเรียบร้อยแล้ว ทางวิทยาลัยได้ดำเนินการจัดทำเอกสารแนบเพิ่มเติมในเล่มวิทยานิพนธ์ และนำส่งมาให้สำนักงานฯ"}, {"no": 34, "date": "15 พ.ค. 2569", "year": 2569, "owner": "ศิริพัชร ศิริคูณ", "work": "สารนิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะวิศวกรรมศาสตร์", "field": "วิศวกรรมซอฟต์แวร์", "channel": "บันทึกข้อความ", "reqtype": "ขอปกปิดถาวร", "newperiod": null, "requester": "นิสิต / อาจารย์ที่ปรึกษา / หัวหน้าภาควิชา", "receiver": "ผู้อำนวยการสำนักงานวิทยทรัพยากร", "reqcat": "นิสิต + อาจารย์/หลักสูตร", "reasoncat": "เนื้อหาละเอียดอ่อน/เป็นความลับ", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขออนุญาตเปลี่ยนแปลงการเผยแพร่สารนิพนธ์ จากเปิดเผยเป็นปกปิดตลอดไป เนื่องจากเนื้อหาภายในเล่ม มีการนำเสนอข้อมูลรายละเอียดของงานและกระบวนการทำงานจริงซึ่งเป็นข้อมูลภายในของบริษัทต้นสังกัดที่บัณฑิตปฏิบัติงานอยู่ และจัดเป็นข้อมูลที่มีความละเอียดอ่อนต่อองค์กร..."}, {"no": 35, "date": "19 พ.ค. 2569", "year": 2569, "owner": "ตฤณห์ โพธิ์รักษา", "work": "วิทยานิพนธ์", "degree": "ปริญญาเอก", "faculty": "คณะรัฐศาสตร์", "field": "อาชญาวิทยาและงานยุติธรรม", "channel": "บันทึกข้อความ", "reqtype": "ขอเพิ่มเวลาปกปิด", "newperiod": "30 ปี", "requester": "อาจารย์ที่ปรึกษา", "receiver": "ผู้อำนวยการสำนักงานวิทยทรัพยากร", "reqcat": "อาจารย์ที่ปรึกษา", "reasoncat": "เนื้อหาละเอียดอ่อน/เป็นความลับ", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว", "detail": "ขอปกปิดวิทยานิพนธ์ เนื่องจากเป็นเรื่องของความละเอียดอ่อนภายในเนื้อหาของวิทยานิพนธ์ ที่มีข้อมูลส่วนบุคคลและรายละเอียดที่ปัจจุบันถูกนำไปเผยแพร่ต่อในโลกออนไลน์ ซึ่งอาจก่อให้เกิดผลกระทบต่อความเป็นส่วนตัว ชื่อเสียง และความปลอดภัยของบุคคลผู้ให้ข้อมูล และตัวผู้ทำการศึกษา ขอปกปิดถึงวันที่ 19 พ.ค. 2599"}, {"no": 36, "date": "26 พ.ค. 2569", "year": 2569, "owner": "Yunkang Liu", "work": "วิทยานิพนธ์", "degree": "ปริญญาโท", "faculty": "คณะรัฐศาสตร์", "field": "การพัฒนาระหว่างประเทศ", "channel": "อีเมล์", "reqtype": "ขอลดเวลาปกปิด", "newperiod": null, "requester": null, "receiver": null, "reqcat": "อื่น ๆ", "reasoncat": "อื่น ๆ / ไม่ระบุชัดเจน", "statuscat": "CUIR ดำเนินการแล้ว", "status": "CUIR ดำเนินการตามที่ได้รับรองขอแล้ว / รอนิสิต ภาควิชา ทำเรื่องทางการ", "detail": "ขอปกปิด / ระงับการเผยแพร่"}];
+const PALETTE=['#d4248e','#2a3a5e','#c9a14a','#3aa6a0','#e8743b','#6c5ce7','#00a8cc','#a0a4ad','#b01a73','#1f9d6b','#e0a800','#4a5fc1'];
+let curYear='all';
+let curType='all';
+let charts={};
+const openSet=new Set();
+Chart.defaults.font.family="'Sarabun',sans-serif";
+Chart.defaults.font.size=12.5;
+Chart.defaults.color='#4a5163';
+
+function fdata(){return curYear==='all'?DATA:DATA.filter(d=>String(d.year)===curYear);}
+function tableData(){return fdata().filter(d=>curType==='all'||d.reqtype===curType);}
+function countBy(arr,key){const m={};arr.forEach(d=>{const v=d[key]||'ไม่ระบุ';m[v]=(m[v]||0)+1});return m;}
+function sortObj(o){return Object.entries(o).sort((a,b)=>b[1]-a[1]);}
+
+function mkChart(id,type,labels,vals,opts={}){
+  if(charts[id])charts[id].destroy();
+  const ctx=document.getElementById(id);
+  const colors=opts.colors||PALETTE;
+  charts[id]=new Chart(ctx,{type:type,data:{labels:labels,datasets:[{
+    data:vals,backgroundColor:type==='line'?'rgba(212,36,142,.12)':colors,
+    borderColor:type==='line'?'#d4248e':(opts.border||colors),
+    borderWidth:type==='line'?3:1,fill:type==='line',tension:.32,
+    pointBackgroundColor:'#d4248e',pointRadius:4,
+    borderRadius:type==='bar'?6:0
+  }]},options:Object.assign({
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:opts.legend||false,position:'right',labels:{boxWidth:12,padding:9,font:{size:11.5}}},
+      tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw+' คำร้อง'}}},
+    scales:opts.noScale?{}:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}
+  },opts.extra||{})});
+}
+
+function render(){
+  const d=fdata();
+  const done=d.filter(x=>x.statuscat==='CUIR ดำเนินการแล้ว').length;
+  const wait=d.length-done;
+  const facs=new Set(d.map(x=>x.faculty)).size;
+  document.getElementById('k1').textContent=d.length;
+  document.getElementById('k2').textContent=done;
+  document.getElementById('k3').textContent=wait;
+  document.getElementById('k4').textContent=facs;
+  document.getElementById('k1s').textContent=curYear==='all'?'ปี 2565–2569':'ปี '+curYear;
+  document.getElementById('k2s').textContent=d.length?Math.round(done/d.length*100)+'% ของคำร้อง':'';
+  document.getElementById('k3s').textContent='ระงับชั่วคราว/บว.อัปเดตเอง';
+  document.getElementById('k4s').textContent='จาก 12 คณะทั้งหมด';
+
+  const yAll=countBy(DATA,'year');
+  const yl=['2565','2566','2567','2568','2569'];
+  mkChart('cYear','line',yl,yl.map(y=>yAll[y]||0));
+  const w=sortObj(countBy(d,'work'));
+  mkChart('cWork','doughnut',w.map(x=>x[0]),w.map(x=>x[1]),{legend:true,noScale:true});
+  const t=sortObj(countBy(d,'reqtype'));
+  mkChart('cType','bar',t.map(x=>x[0]),t.map(x=>x[1]),{extra:{indexAxis:'y'}});
+  const r=sortObj(countBy(d,'reasoncat'));
+  mkChart('cReason','bar',r.map(x=>x[0].length>22?x[0].slice(0,21)+'…':x[0]),r.map(x=>x[1]),{extra:{indexAxis:'y'}});
+  const f=sortObj(countBy(d,'faculty'));
+  mkChart('cFac','bar',f.map(x=>x[0]),f.map(x=>x[1]),{extra:{indexAxis:'y'}});
+  const dg=sortObj(countBy(d,'degree'));
+  mkChart('cDeg','doughnut',dg.map(x=>x[0]),dg.map(x=>x[1]),{legend:true,noScale:true});
+  const ch=sortObj(countBy(d,'channel'));
+  mkChart('cChan','doughnut',ch.map(x=>x[0]),ch.map(x=>x[1]),{legend:true,noScale:true});
+  const st=sortObj(countBy(d,'statuscat'));
+  mkChart('cStat','bar',st.map(x=>x[0]),st.map(x=>x[1]),{colors:['#1f9d6b','#e0a800','#d64545'],extra:{indexAxis:'y'}});
+  const rq=sortObj(countBy(d,'reqcat'));
+  mkChart('cReq','bar',rq.map(x=>x[0]),rq.map(x=>x[1]));
+
+  buildTable(tableData());
+}
+
+
+let sortK='no',sortAsc=true;
+function tagClass(t){if(t.includes('ถาวร'))return 't-perm';if(t.includes('เพิ่ม'))return 't-add';if(t.includes('ลด'))return 't-red';return 't-other';}
+function statClass(s){if(s.includes('ดำเนินการแล้ว'))return 's-done';if(s.includes('ยังไม่'))return 's-no';return 's-wait';}
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+
+function detailRow(d){
+  return `<tr class="detail-row" data-for="${d.no}"><td colspan="10"><div class="detail-box">
+    <div class="dgrid">
+      <div class="f"><div class="k">ประเภทผลงาน</div><div class="vv">${esc(d.work)||'-'}</div></div>
+      <div class="f"><div class="k">สาขาวิชา</div><div class="vv">${esc(d.field)||'-'}</div></div>
+      <div class="f"><div class="k">ระยะเวลาที่ร้องขอใหม่</div><div class="vv">${esc(d.newperiod)||'-'}</div></div>
+      <div class="f"><div class="k">หน่วยงานที่รับคำร้อง</div><div class="vv">${esc(d.receiver)||'-'}</div></div>
+      <div class="f"><div class="k">ผู้ทำคำร้อง</div><div class="vv">${esc(d.requester)||'-'}</div></div>
+      <div class="f"><div class="k">กลุ่มผู้ยื่น</div><div class="vv">${esc(d.reqcat)}</div></div>
+      <div class="f"><div class="k">กลุ่มเหตุผล</div><div class="vv">${esc(d.reasoncat)}</div></div>
+      <div class="f"><div class="k">ช่องทาง</div><div class="vv">${esc(d.channel)}</div></div>
+    </div>
+    <div class="full"><div class="lab">รายละเอียดคำร้อง</div>${esc(d.detail)||'<span style="color:#9aa0ad">— ไม่มีรายละเอียดเพิ่มเติม —</span>'}</div>
+    <div class="full st"><div class="lab">สถานะ / ผลการดำเนินการ (เต็ม)</div>${esc(d.status)||'-'}</div>
+  </div></td></tr>`;
+}
+
+function buildTable(d){
+  const rows=[...d].sort((a,b)=>{let x=a[sortK],y=b[sortK];if(typeof x==='string'){x=x||'';y=y||'';return sortAsc?x.localeCompare(y,'th'):y.localeCompare(x,'th');}return sortAsc?x-y:y-x;});
+  document.getElementById('tcount').textContent='แสดง '+rows.length+' คำร้อง';
+  document.getElementById('tb').innerHTML=rows.map(d=>{
+    const op=openSet.has(d.no);
+    return `<tr class="main ${op?'open':''}" data-no="${d.no}">
+      <td><span class="caret">▶</span></td>
+      <td>${d.no}</td><td style="white-space:nowrap">${d.date}</td>
+      <td>${esc(d.owner)||'-'}</td>
+      <td>${esc(d.faculty)}</td><td>${esc(d.degree)}</td>
+      <td><span class="tag ${tagClass(d.reqtype)}">${esc(d.reqtype)}</span></td>
+      <td>${esc(d.reasoncat)}</td><td>${esc(d.channel)}</td>
+      <td class="${statClass(d.statuscat)}">${esc(d.statuscat.replace('CUIR ',''))}</td>
+    </tr>`+(op?detailRow(d):'');
+  }).join('');
+  bindRows();
+}
+function bindRows(){
+  document.querySelectorAll('tr.main').forEach(tr=>tr.addEventListener('click',()=>{
+    const no=+tr.dataset.no;
+    if(openSet.has(no))openSet.delete(no);else openSet.add(no);
+    buildTable(tableData());
+  }));
+}
+document.querySelectorAll('#tbl th[data-k]').forEach(th=>th.addEventListener('click',e=>{
+  e.stopPropagation();const k=th.dataset.k;if(sortK===k)sortAsc=!sortAsc;else{sortK=k;sortAsc=true;}buildTable(tableData());
+}));
+document.getElementById('expAll').addEventListener('click',()=>{tableData().forEach(d=>openSet.add(d.no));buildTable(tableData());});
+document.getElementById('colAll').addEventListener('click',()=>{openSet.clear();buildTable(tableData());});
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');curYear=c.dataset.y;render();
+}));
+document.querySelectorAll('.tfchip').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.tfchip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');curType=c.dataset.t;buildTable(tableData());
+}));
+render();
+</script>
+</body>
+</html>
